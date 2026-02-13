@@ -1,5 +1,5 @@
 from django.urls import path,include
-from expense.views import get_expense_trend, RetrieveUserExpense
+from expense.views import get_expense_trend, RetrieveUserExpense, RetriveBudgetSpendPrediction
 from . import views
 from rest_framework.routers import DefaultRouter
 router=DefaultRouter()
@@ -9,5 +9,7 @@ urlpatterns = [
     path('',include(router.urls)),
     path('ai/budget_insight/<str:pk>',views.BudgetRetrieve.as_view(),name="retrieve_budget"),
     path('ai/expense_insight',views.RetrieveUserExpense.as_view(),name="retrieve_user_expense"),
-    path('ai/expense_trend',views.get_expense_trend,name="get_expense_trend")
+    path('ai/expense_trend',views.get_expense_trend,name="get_expense_trend"),
+    path('ai/expense_anomaly',views.get_expense_anomaly,name="get_expense_anomaly"),
+    path('ai/budget_spend_prediction/<str:pk>',RetriveBudgetSpendPrediction.as_view(),name="get_spend_prediction"),
 ]
