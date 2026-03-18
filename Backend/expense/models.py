@@ -124,7 +124,7 @@ class Expense(models.Model):
     def save(self, *args, **kwargs):
        self.full_clean()
     #    Check if the remaining budget amount is valid or not
-       total_spent=self.budget.budget_expenses.aggregate(
+       total_spent=self.budget.budget_expenses.exclude(pk=self.pk).aggregate(
         models.Sum("expense_amount")
         )["expense_amount__sum"] or 0
       

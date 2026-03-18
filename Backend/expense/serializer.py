@@ -1,3 +1,4 @@
+import expense.models
 from rest_framework import serializers
 from . import models
 from authentication.serializer import UserSerializer
@@ -42,11 +43,15 @@ class ExpenseSerializer(serializers.ModelSerializer):
         read_only_fields=["expense_category"]
     
     def validate(self, data):
-        total_spent = data["budget"].budget_expenses.aggregate(
+        budget=data.get("budget") or getattr(self.instance,"budget",None)
+        expense_amount=data.get("expense_amount",getattr(self.instance,"expense_amount",0))
+        if not budget or not "expense_amount" in data:
+            return data
+        total_spent = budget.budget_expenses.aggregate(
             Sum("expense_amount")
         )["expense_amount__sum"] or 0
 
-        if total_spent + data["expense_amount"] > data["budget"].budget_amount:
+        if total_spent + expense_amount > budget.budget_amount:
             raise serializers.ValidationError({
                 "inactive": ["You can't add as the budget amount exceeded"]
             })
