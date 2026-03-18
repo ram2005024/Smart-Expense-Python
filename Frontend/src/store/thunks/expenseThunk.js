@@ -39,8 +39,8 @@ export const addExpense = createAsyncThunk(
             thunkAPI.dispatch(fetchExpenses({ page: currentPage, page_size: thunkAPI.getState().expense.page_size, date: thunkAPI.getState().expense.selectedMonth }))
             return response.data
         } catch (error) {
-            console.log("YEi ho hai error:", error.response?.data)
-            return thunkAPI.rejectWithValue(error.response?.data?.budget || error.message || "Something went wrong")
+
+            return thunkAPI.rejectWithValue(error.response?.data?.inactive || error.message || "Something went wrong")
         }
     }
 )

@@ -101,9 +101,9 @@ const AddExpense = ({ isAddExpense, setIsAddExpense }) => {
             setIsAddExpense(false)
             toast.success("Added successfully")
         } catch (error) {
-            console.log(error)
-            toast.error(error)
-        } finally {
+            toast.error(error);
+        }
+        finally {
             setLoading(false)
         }
     }

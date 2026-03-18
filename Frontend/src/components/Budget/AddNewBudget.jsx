@@ -2,13 +2,16 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setIsNewBudgetAdd } from '../../store/slices/budgetSlice'
-import { X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { axiosInstance } from '../../utils/axios/axiosInstance'
+import { fetchBudget, fetchBudgetWithLimit } from '../../store/thunks/budgetThunk'
 
 const AddNewBudget = () => {
-    const { isNewBudgetAdd } = useSelector(state => state.budget)
+    const { isNewBudgetAdd, activeBudgetType } = useSelector(state => state.budget)
     const [categories, setCategories] = useState([])
     const [budgetType, setBudgetType] = useState([])
+    const [loading, setLoading] = useState(false)
+
     const dispatch = useDispatch()
     useEffect(() => {
         (async () => {
@@ -23,6 +26,43 @@ const AddNewBudget = () => {
             }
         })()
     }, [])
+    const [formData, setFormData] = useState({
+        budget_name: "",
+        budget_field: "",
+        budget_amount: 0,
+        budget_limit: "",
+        is_active: true
+    })
+
+    // Handle input change
+    const handleInputChange = (name, value) => {
+        setFormData((prev) => ({ ...prev, [name]: value }))
+    }
+    // Handle formSubmit
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+
+        try {
+            const res = await axiosInstance.post("/budget/budgets/", formData)
+            if (res.status == 201) {
+                setFormData({
+                    budget_name: "",
+                    budget_field: "",
+                    budget_amount: 0,
+                    budget_limit: "",
+                    is_active: true
+                })
+            }
+            await dispatch(fetchBudget()).unwrap()
+            await dispatch(fetchBudgetWithLimit(activeBudgetType)).unwrap()
+            dispatch(setIsNewBudgetAdd(false))
+        } catch (error) {
+            console.log(error)
+        }
+        finally {
+            setLoading(false)
+        }
+    }
     return (
         <AnimatePresence>
             {isNewBudgetAdd && (
@@ -80,25 +120,25 @@ const AddNewBudget = () => {
                             <span className='text-[10px] text-gray-400 '>Add new budget category</span>
                         </div>
                         {/* Hero div */}
-                        <form className='flex flex-col gap-3.5 text-sm font-md px-4 p-2'>
+                        <form onSubmit={handleSubmit} className='flex flex-col gap-3.5 text-sm font-md px-4 p-2'>
                             {/* Budget Name */}
                             <div className='flex flex-col gap-1 text-gray-600 font-semibold'>
-                                <label htmlFor="budget_name">
+                                <label>
                                     Budget name
                                 </label>
-                                <input name='budget_name' type="text" placeholder='eg. Grocery items'
+                                <input onChange={(e) => handleInputChange(e.target.name, e.target.value)} name='budget_name' type="text" placeholder='eg. Grocery items'
                                     className='text-xs px-4 font-medium p-2 w-full border border-gray-200 rounded-lg
                             transition-all duration-200 ease-in outline-0 focus:border-indigo-300 text-gray-400'
-                                    id='budget_name' required={true} />
+                                    required={true} />
                             </div>
                             {/* Budget Category */}
                             <div className='flex flex-col gap-1 text-gray-600 font-semibold'>
-                                <label htmlFor="budget_category">
+                                <label>
                                     Budget Category
                                 </label>
-                                <select className='text-xs px-4 font-medium p-2 w-full border border-gray-200 rounded-lg
+                                <select onChange={(e) => handleInputChange(e.target.name, e.target.value)} className='text-xs px-4 font-medium p-2 w-full border border-gray-200 rounded-lg
                             transition-all duration-200 ease-in outline-0 focus:border-indigo-300 text-gray-400'
-                                    id='budget_category' required={true} name="budget_category_value" >
+                                    required={true} name="budget_field" >
                                     <option value="">Select category</option>
                                     {categories.length > 0 && categories.map((i, idx) => {
                                         return (
@@ -109,25 +149,26 @@ const AddNewBudget = () => {
                             </div>
                             {/* Budget Amount */}
                             <div className='flex flex-col gap-1 text-gray-600 font-semibold'>
-                                <label htmlFor="budget_amt">
+                                <label>
                                     Budget amount
                                 </label>
                                 <input name='budget_amount' type="number"
                                     min={0}
                                     max={1000000}
+                                    onChange={(e) => handleInputChange(e.target.name, e.target.value)}
                                     placeholder='eg. Rs. 500'
                                     className='text-xs px-4 font-medium p-2 w-full border border-gray-200 rounded-lg
                             transition-all duration-200 ease-in outline-0 focus:border-indigo-300 text-gray-400'
-                                    id='budget_amt' required={true} />
+                                    required={true} />
                             </div>
                             {/* Budget type */}
                             <div className='flex flex-col gap-1 text-gray-600 font-semibold'>
-                                <label htmlFor="budget_type">
+                                <label>
                                     Budget Type
                                 </label>
-                                <select className='text-xs px-4 font-medium p-2 w-full border border-gray-200 rounded-lg
+                                <select onChange={(e) => handleInputChange(e.target.name, e.target.value)} className='text-xs px-4 font-medium p-2 w-full border border-gray-200 rounded-lg
                             transition-all duration-200 ease-in outline-0 focus:border-indigo-300 text-gray-400'
-                                    id='budget_type' required={true} name="budget_type_value" >
+                                    required={true} name="budget_limit" >
                                     <option value="">Select category</option>
                                     {budgetType.length > 0 && budgetType.map((i, idx) => {
                                         return (
@@ -136,6 +177,52 @@ const AddNewBudget = () => {
                                     })}
                                 </select>
                             </div>
+                            {/* Active budget */}
+                            <div className='flex flex-col gap-1 text-gray-600 font-semibold'>
+                                <label htmlFor="active budget">
+                                    Active Budget
+                                </label>
+                                <div className='flex justify-between p-2 bg-gray-50 rounded-lg border
+                               border-gray-200'>
+                                    <span className='text-xs'>Enable this budget</span>
+                                    <div onClick={() => handleInputChange("is_active", !formData.is_active)} className={`${formData.is_active ? "bg-indigo-500" : "bg-gray-400"} cursor-pointer w-9 h-5 flex items-center justify-center rounded-full
+                                    p-.5`}>
+                                        <div className={`w-4 h-4 rounded-full bg-white   transform transition-all duration-200
+                                        ease-in
+                                            ${formData.is_active ? " translate-x-2" : "-translate-x-2"}`}></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Info */}
+                            <div className='border p-2 border-gray-100 rounded-lg bg-indigo-300/70 text-xs text-blue-500'>
+                                <span>Budget validity will be calculated automatically based on the selected budget type</span>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className='mt-3 flex justify-between'>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => dispatch(setIsNewBudgetAdd(false))}
+                                    className='w-28  p-2 px-4 text-center bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold text-xs uppercase tracking-wide rounded-lg transition-colors duration-200 border border-gray-200'
+                                >
+                                    Cancel
+                                </motion.button>
+                                <motion.button
+                                    type='submit'
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    disabled={loading}
+
+                                    className='w-fit py-2 px-4 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2  text-center bg-linear-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-xs uppercase tracking-wide rounded-lg transition-all duration-200 shadow-lg shadow-indigo-500/30'
+                                >
+
+                                    Save Changes
+                                    {loading && <Loader2 className='animate-spin size-5 text-gray-100' />}
+                                </motion.button>
+                            </div>
+
                         </form>
                     </motion.div>
                 </motion.div>

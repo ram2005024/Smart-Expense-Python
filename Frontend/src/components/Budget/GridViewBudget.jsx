@@ -5,7 +5,6 @@ import { getColorCode } from '../../utils/getProgressColor'
 import { ChartLine, Plus } from 'lucide-react'
 const GridViewBudget = () => {
     const { budgetsWithLimit } = useSelector(state => state.budget)
-    console.log("Hell yeah", budgetsWithLimit)
     return (
         <div className='w-9/12 h-fit  grid grid-cols-3 gap-2 max-sm:grid-cols-1 '>
             {
@@ -107,7 +106,7 @@ const GridViewBudget = () => {
                     <div>No budget found</div>
                 )
             }
-            <div className='border border-dashed border-gray-400 shadow-md rounded-sm bg-white flex items-center justify-center transition-all duration-250 ease-in hover:bg-slate-50 cursor-pointer active:scale-95'>
+            <div className='border border-dashed h-60 border-gray-400 shadow-md rounded-sm bg-white flex items-center justify-center transition-all duration-250 ease-in hover:bg-slate-50 cursor-pointer active:scale-95'>
                 <div className='flex flex-col gap-2 items-center text-xs text-gray-500'>
                     <div className='w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center'>
                         <Plus className='size-5' />
