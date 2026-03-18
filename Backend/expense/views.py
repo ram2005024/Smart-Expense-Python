@@ -1,10 +1,13 @@
-import django.contrib.auth.admin
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
+from expense.pagination import ExpensePagination
+from expense.filter import ExpenseFilter
 from .serializer import BudgetSerailizer,ExpenseSerializer
 from rest_framework import serializers
-from datetime import date,datetime
+from datetime import datetime
 from .models import Budget,Expense
 import random
+from django.db.models import Sum,F
 import requests
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework import viewsets
@@ -27,17 +30,52 @@ class BudgetView(viewsets.ModelViewSet):
 class ExpenseView(viewsets.ModelViewSet):
     queryset=models.Expense.objects.all()
     permission_classes=[IsAuthenticated]
+    filter_backends=[DjangoFilterBackend]
+    filterset_class=ExpenseFilter
     serializer_class=ExpenseSerializer
+    pagination_class=ExpensePagination
     
-    def perform_create(self, serializer):
-        budget=serializer.validated_data['budget']
-        if not budget.active_budget:
-            raise serializers.ValidationError({
-                "budget":"You can't add expense as the budget amount is exceeded."})
-        serializer.save(user=self.request.user)
+    
+    
+   
+    
+    def create(self, request, *args, **kwargs):
+        serializer=self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # Get the updated count of the new Expense list
+        count=Expense.objects.count()
+        return Response(
+            {
+                "data":serializer.data,
+                "count":count
+            },
+            status=status.HTTP_201_CREATED
+        )
+        
+    
+
     def get_queryset(self):
         expenses=Expense.objects.filter(user=self.request.user)
-        return expenses
+        # Return if the method is put 
+        if self.request.method=='PUT':
+            return expenses
+        # Return all the expense that user reuqest for particular date
+        date_str=self.request.query_params.get("date")
+        # Convert the date into normal datetime object
+        if date_str:
+            try:
+                parsed_date=datetime.strptime(date_str,"%b %Y")
+                expenses=expenses.filter(
+                    created_at__year=parsed_date.year,
+                    created_at__month=parsed_date.month
+                )
+            except ValueError:
+                raise serializers.ValidationError({
+                    "date":"Please provide the date field in MMM YYYY format"
+                })
+        return expenses.order_by("-created_at")
 
 class BudgetRetrieve(generics.RetrieveAPIView):
     serializer_class=BudgetSerailizer
@@ -204,3 +242,118 @@ class RetriveBudgetSpendPrediction(generics.RetrieveAPIView):
          response=requests.post(fast_api_url + "budget/expense_prediction",json=data)
          response_data=response.json()
          return Response(response_data,status=status.HTTP_200_OK)
+# View to get the total-spend insight
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_total_spend_insight(request):
+    year=int(request.GET.get("year",datetime.now().year))
+    month=int(request.GET.get("month",datetime.now().month))
+    user_id=request.user.id
+    # Requests the fastapi end point and get the result
+    response=requests.get(fast_api_url+f"expense/analytics/total_spent",
+                          params={
+                              "month":month,
+                              "year":year,
+                              "user_id":user_id
+                          }
+                          )
+    if response.status_code==200:
+        return Response(response.json(),status=status.HTTP_200_OK)
+    else:
+        return Response({"message":"Error while getting the analyzed data"},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def analyse_reimbrushed(request):
+    user_id=request.user.id
+    year=int(request.GET.get("year",datetime.now().year))
+    month=int(request.GET.get("month",datetime.now().month))
+    # Call the fastapi end point for analytics
+    response=requests.get(fast_api_url+"expense/reimbrush/analyse",
+                          params={
+                              "user_id":user_id,
+                              "month":month,
+                              "year":year,
+                          })
+    if response.status_code==200:
+        return Response(response.json(),status=status.HTTP_200_OK)
+    else:
+        return Response({"message":"Something went wrong"},status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def analyse_pending(request):
+    user_id=request.user.id
+    year=int(request.GET.get("year",datetime.now().year))
+    month=int(request.GET.get("month",datetime.now().month))
+    # Call the fastapi end point for analytics
+    response=requests.get(fast_api_url+"expense/pending/analyse",
+                          params={
+                              "user_id":user_id,
+                              "month":month,
+                              "year":year,
+                          })
+    if response.status_code==200:
+        return Response(response.json(),status=status.HTTP_200_OK)
+    else:
+        return Response({"message":"Something went wrong"},status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def analyse_decline(request):
+    user_id=request.user.id
+    year=int(request.GET.get("year",datetime.now().year))
+    month=int(request.GET.get("month",datetime.now().month))
+    # Call the fastapi end point for analytics
+    response=requests.get(fast_api_url+"expense/decline/analyse",
+                          params={
+                              "user_id":user_id,
+                              "month":month,
+                              "year":year,
+                          })
+    if response.status_code==200:
+        return Response(response.json(),status=status.HTTP_200_OK)
+    else:
+        return Response({"message":"Something went wrong"},status=status.HTTP_400_BAD_REQUEST)
+
+# Views to get the spend per categories
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_spend_by_categories(request):
+    # Get the user id and fetch the expense by user id
+    user_id=request.user.id
+    date_str=request.GET.get("date")
+    parsed_date=datetime.strptime(date_str,"%b %Y")
+    
+    expenses=Expense.objects.filter(user=user_id,created_at__year=parsed_date.year,created_at__month=parsed_date.month)
+    # Now get the expense category and its total per category
+    final_expense=expenses.values("expense_category").annotate(total=Sum("expense_amount")).order_by("-total")
+    final_expense=[{**expense, "total": round(expense['total'],2)} for expense in final_expense]
+    return Response({
+        "summary":list(final_expense),
+       
+    }, status=status.HTTP_200_OK)
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_category_budget_usage(request):
+    # Get the expense of user according to the category
+    date_str=request.GET.get("date")
+    parsed_str=datetime.strptime(date_str,"%b %Y")
+    # Get the expense of the provided date
+    budgets=Budget.objects.filter(
+        budget_expenses__created_at__year=parsed_str.year,
+        budget_expenses__created_at__month=parsed_str.month,
+        is_active=True
+    ).annotate(
+        spent=Sum("budget_expenses__expense_amount"),
+        percent=(Sum("budget_expenses__expense_amount")*100.0/F('budget_amount'))
+    )
+    summary=[]
+    for b in budgets:
+        summary.append({
+            "budget_category":b.budget_field,
+            "spent":round(b.spent) or 0,
+            "total":round(b.budget_amount) or 0,
+            "percent":round(b.percent,2) or 0
+        })
+    return Response(summary,status=status.HTTP_200_OK)

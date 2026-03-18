@@ -1,18 +1,24 @@
+import environ
+import os
 
 from pathlib import Path
 from datetime import timedelta
-
+import cloudinary
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+# Initialize the env variables
+env=environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR,".env"))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hfj01o!hak6cdj#5n6jul+dn8-rdgyx2iz6vt7i7)vl04c#6ry'
+SECRET_KEY =env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG",default=False)
 
+# Micro-service API
+FAST_API=env("FAST_API")
 ALLOWED_HOSTS = []
 
 
@@ -27,13 +33,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third party apps
     'rest_framework_simplejwt',
+    "corsheaders",
+     "rest_framework_simplejwt.token_blacklist",
+     "cloudinary",
+        "cloudinary_storage",
+
+
     # Local apps
     'authentication',
     'expense',
+    "budget"
     
 ]
 
 MIDDLEWARE = [
+     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -68,8 +82,12 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env("DATABASE_NAME"),      # smart_expenses
+        'USER': env("DATABASE_USER"),      # myuser
+        'PASSWORD': env("DATABASE_PASSWORD"),  # 9crqoovg9
+        'HOST': 'localhost',                     
+        'PORT': '5432',
     }
 }
 
@@ -108,7 +126,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
+    "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": True,
 
     "ALGORITHM": "HS256",
@@ -133,3 +151,17 @@ MEDIA_ROOT=BASE_DIR / "media"
 
 # Auth user model
 AUTH_USER_MODEL='authentication.CustomUser'
+# CORS Config🛠️🛠️
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# Default fiile storage
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Cloudinary config
+    
+cloudinary.config(
+    cloud_name=env("CLOUD_NAME"),
+    api_key=env("CLOUD_API_KEY"),
+    api_secret=env("CLOUD_API_SECRET")
+)
