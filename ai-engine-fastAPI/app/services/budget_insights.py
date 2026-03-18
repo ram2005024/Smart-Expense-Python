@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 import time
+from typing import List
+from app.schemas import BudgetSpend
 from datetime import timedelta,datetime
 router=APIRouter()
 
@@ -77,5 +79,12 @@ def budget_insight(data:dict):
     }
     return ai_insight
 
-
-    
+@router.post("/budget/budgetSpend")
+def budget_spend(formatted_values:List[BudgetSpend]):
+   result={}
+   for exp in formatted_values:
+       if exp.month not in result:
+           result[exp.month]=0
+       amt=exp.expense_amount
+       result[exp.month]=round(result.get(exp.month,0)+amt,2)
+   return result
