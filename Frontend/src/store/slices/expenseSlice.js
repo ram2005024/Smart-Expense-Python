@@ -12,7 +12,6 @@ const initialState = {
     currentPage: 1,
     pageSize: 10,
     filterActive: false,
-    fetchError: null,
     filter: null,
     selectedMonth: dayjs().format("MMM YYYY")
 }
@@ -67,9 +66,7 @@ const expenseSlice = createSlice({
                 state.filteredExpenses = [...state.expenses]
                 state.totalPages = Math.ceil(action.payload.count / state.pageSize)
             })
-            .addCase(addExpense.rejected, (state, action) => {
-                state.fetchError = action.payload
-            })
+
     }
 })
 export default expenseSlice.reducer

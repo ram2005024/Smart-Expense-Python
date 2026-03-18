@@ -1,9 +1,11 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { budgetCategoriesIcons } from '../../assets/assets'
 import { getColorCode } from '../../utils/getProgressColor'
 import { ChartLine, Plus } from 'lucide-react'
+import { setIsNewBudgetAdd } from '../../store/slices/budgetSlice'
 const GridViewBudget = () => {
+    const dispatch = useDispatch()
     const { budgetsWithLimit } = useSelector(state => state.budget)
     return (
         <div className='w-9/12 h-fit  grid grid-cols-3 gap-2 max-sm:grid-cols-1 '>
@@ -106,7 +108,7 @@ const GridViewBudget = () => {
                     <div>No budget found</div>
                 )
             }
-            <div className='border border-dashed h-60 border-gray-400 shadow-md rounded-sm bg-white flex items-center justify-center transition-all duration-250 ease-in hover:bg-slate-50 cursor-pointer active:scale-95'>
+            <div onClick={() => dispatch(setIsNewBudgetAdd(true))} className='border border-dashed h-60 border-gray-400 shadow-md rounded-sm bg-white flex items-center justify-center transition-all duration-250 ease-in hover:bg-slate-50 cursor-pointer active:scale-95'>
                 <div className='flex flex-col gap-2 items-center text-xs text-gray-500'>
                     <div className='w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center'>
                         <Plus className='size-5' />
@@ -117,5 +119,4 @@ const GridViewBudget = () => {
         </div>
     )
 }
-
 export default GridViewBudget

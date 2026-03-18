@@ -3,8 +3,10 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setActiveBudgetType, setActiveView, setIsNewBudgetAdd } from '../../store/slices/budgetSlice'
 import AddNewBudget from './AddNewBudget'
+import { convertToCSV } from '../../utils/convertToCSV'
 const BudgetHeader = () => {
     const { budgets, activeView, activeBudgetType } = useSelector(state => state.budget)
+    const { budgetsWithLimit } = useSelector(state => state.budget)
     const budgetType = [
         "MONTHLY",
         "WEEKLY",
@@ -26,6 +28,7 @@ const BudgetHeader = () => {
             icon: List
         },
     ]
+
     return (
         <div className='w-full flex justify-between '>
             <div className='flex gap-2 '>
@@ -83,7 +86,7 @@ const BudgetHeader = () => {
                 </div>
 
                 {/* Export button */}
-                <div className='flex text-[10px] cursor-pointer transition-all active:scale-95 font-semibold bg-white border border-gray-100 shadow-sm p-2 rounded-lg gap-1.5 items-center gap-.5'>
+                <div onClick={() => convertToCSV(budgetsWithLimit, `budget_${new Date().getMilliseconds()}`)} className='flex text-[10px] cursor-pointer transition-all active:scale-95 font-semibold bg-white border border-gray-100 shadow-sm p-2 rounded-lg gap-1.5 items-center gap-.5'>
                     <Download className='size-4 text-gray-400' />
                     <span className='text-gray-400'>
                         Export
