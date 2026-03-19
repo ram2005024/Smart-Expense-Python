@@ -1,12 +1,27 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { capitalize } from '../../../../utils/capitalize'
-import { Dot } from 'lucide-react'
+import { Dot, LeafyGreen } from 'lucide-react'
 import dayjs from 'dayjs'
 import Pagination from './Pagination'
 
 const ExpenseTableBody = () => {
     const { filteredExpenses, expenses, totalSpend } = useSelector(state => state.expense)
+    const [selectedRows, setSelectedRows] = useState([])
+    // Handle selections
+    const handleSelectAll = () => {
+        if (selectedRows.length != filteredExpenses?.length) {
+            setSelectedRows(filteredExpenses?.map(i => i.id))
+            return
+        }
+        setSelectedRows([])
+    }
+    // Handle Row check
+    const handleRowSelect = (id) => {
+        setSelectedRows((prev) =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        )
+    }
     const categoryUI = [
         {
             categoryName: "GROCERY",
@@ -77,12 +92,12 @@ const ExpenseTableBody = () => {
         }
     ];
     return (
-        <div className='w-full'>
+        <div className='relative w-full'>
             <table className='border border-collapse w-full border-none'>
                 <thead className=' border border-b border-gray-200 px-3'>
                     <tr className=' text-center'>
                         <th className='p-2'>
-                            <input type="checkbox" />
+                            <input type="checkbox" onChange={() => handleSelectAll()} checked={selectedRows.length === filteredExpenses?.length} />
                         </th>
                         <th className='p-2 hidden sm:table-cell'>
                             <span className='text-xs font-bold text-gray-500'>TRANSACTION</span>
@@ -112,7 +127,7 @@ const ExpenseTableBody = () => {
                             const categoryTextColor = categoryUI.find((i) => i.categoryName == items.expense_category).textColor
                             return (
                                 <tr className='p-2 border border-b border-gray-200 text-xs' key={items.id}>
-                                    <td className='px-2'><input type="checkbox" /></td>
+                                    <td className='px-2'><input type="checkbox" onChange={() => handleRowSelect(items.id)} checked={selectedRows.includes(items.id)} /></td>
                                     <td className='px-4 py-2'>
                                         <div className='flex gap-1'>
                                             <div className='p-1 m-1 bg-slate-50  rounded-lg'>
