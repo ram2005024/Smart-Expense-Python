@@ -2,6 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
 from expense.pagination import ExpensePagination
 from expense.filter import ExpenseFilter
+from rest_framework.decorators import action
 from .serializer import BudgetSerailizer,ExpenseSerializer
 from rest_framework import serializers
 from datetime import datetime
@@ -54,7 +55,15 @@ class ExpenseView(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
         
-    
+    @action(detail=False,methods=['POST'])
+    def bulk_delete(self,request):
+        # Get all the ids from the frontend
+        ids=request.POST.get("ids",[])
+        if not ids:
+            return Response({"error":"Failed to delete the expense"},status=status.HTTP_400_BAD_REQUEST)
+        # Delete the expense whose ids matches
+        delete_count,_=Expense.objects.filter(id__in=ids).delete()
+        return Response({"message":"Deleted successfully","delete_count":delete_count},status=status.HTTP_200_OK)
 
     def get_queryset(self):
         expenses=Expense.objects.filter(user=self.request.user)
