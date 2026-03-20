@@ -6,8 +6,9 @@ from authentication.models import CustomUser
 
 fake = Faker()
 
+
 class Command(BaseCommand):
-    help = "Seed a few dummy expenses starting from today"
+    help = "Seed a few dummy expenses for the current month"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -35,17 +36,26 @@ class Command(BaseCommand):
 
         budgets = list(Budget.objects.filter(user=user))
         if not budgets:
-            self.stdout.write(self.style.ERROR("No budgets found for this user. Seed budgets first!"))
+            self.stdout.write(
+                self.style.ERROR("No budgets found for this user. Seed budgets first!")
+            )
             return
 
         statuses = ["PENDING", "DECLINED", "REIMBRUSHED", "PAID"]
-        today = datetime.date.today()-datetime.timedelta(days=30)
+
+        # First day of current month
+        today = datetime.date.today()
+        first_day = today.replace(day=1)
+
         expenses_to_create = []
 
         for _ in range(count):
             budget = random.choice(budgets)
-            expense_date = today
-            updated_date = today + datetime.timedelta(days=random.randint(0, 2))
+
+            # Pick a random day in the current month
+            random_day = random.randint(0, today.day - 1)
+            expense_date = first_day + datetime.timedelta(days=random_day)
+            updated_date = expense_date + datetime.timedelta(days=random.randint(0, 2))
 
             expenses_to_create.append(
                 Expense(
@@ -56,10 +66,18 @@ class Command(BaseCommand):
                     expense_amount=round(random.uniform(10, 200), 2),
                     status=random.choice(statuses),
                     expense_category=budget.budget_field,
-                    created_at=datetime.datetime.combine(expense_date, datetime.time.min),
-                    updated_at=datetime.datetime.combine(updated_date, datetime.time.min),
+                    created_at=datetime.datetime.combine(
+                        expense_date, datetime.time.min
+                    ),
+                    updated_at=datetime.datetime.combine(
+                        updated_date, datetime.time.min
+                    ),
                 )
             )
 
         Expense.objects.bulk_create(expenses_to_create)
-        self.stdout.write(self.style.SUCCESS(f"Added {len(expenses_to_create)} dummy expenses for {username} starting today"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Added {len(expenses_to_create)} dummy expenses for {username} in the current month"
+            )
+        )
