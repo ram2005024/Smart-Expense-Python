@@ -8,25 +8,19 @@ fake = Faker()
 
 
 class Command(BaseCommand):
-    help = "Seed a few dummy expenses for the current month"
+    help = "Seed dummy expenses for a given month (always generates for budgets)"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--username",
-            type=str,
-            required=True,
-            help="Username of the user to seed expenses for",
-        )
-        parser.add_argument(
-            "--count",
-            type=int,
-            default=5,
-            help="Number of dummy expenses to create",
-        )
+        parser.add_argument("--username", type=str, required=True)
+        parser.add_argument("--count", type=int, default=5)
+        parser.add_argument("--month", type=int, default=datetime.date.today().month)
+        parser.add_argument("--year", type=int, default=datetime.date.today().year)
 
     def handle(self, *args, **options):
         username = options["username"]
         count = options["count"]
+        month = options["month"]
+        year = options["year"]
 
         try:
             user = CustomUser.objects.get(username=username)
@@ -43,18 +37,26 @@ class Command(BaseCommand):
 
         statuses = ["PENDING", "DECLINED", "REIMBRUSHED", "PAID"]
 
-        # First day of current month
-        today = datetime.date.today()
-        first_day = today.replace(day=1)
+        # First and last day of chosen month
+        first_day = datetime.date(year, month, 1)
+        if month == 12:
+            next_month = datetime.date(year + 1, 1, 1)
+        else:
+            next_month = datetime.date(year, month + 1, 1)
+        last_day = next_month - datetime.timedelta(days=1)
 
         expenses_to_create = []
 
         for _ in range(count):
             budget = random.choice(budgets)
 
-            # Pick a random day in the current month
-            random_day = random.randint(0, today.day - 1)
-            expense_date = first_day + datetime.timedelta(days=random_day)
+            # Instead of skipping, just clamp dates to the chosen month
+            start_date = first_day
+            end_date = last_day
+
+            # Pick a random day within the chosen month
+            random_day = random.randint(0, (end_date - start_date).days)
+            expense_date = start_date + datetime.timedelta(days=random_day)
             updated_date = expense_date + datetime.timedelta(days=random.randint(0, 2))
 
             expenses_to_create.append(
@@ -78,6 +80,6 @@ class Command(BaseCommand):
         Expense.objects.bulk_create(expenses_to_create)
         self.stdout.write(
             self.style.SUCCESS(
-                f"Added {len(expenses_to_create)} dummy expenses for {username} in the current month"
+                f"Added {len(expenses_to_create)} dummy expenses for {username} in {month}/{year}"
             )
         )

@@ -34,8 +34,9 @@ budget_type_cat = (
 
 class Budget(models.Model):
     # Timestamps
-    created_at = models.DateTimeField(auto_now=True, null=True)
-    updated_at = models.DateTimeField(auto_now_add=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
     id = models.CharField(primary_key=True, default=uuid.uuid4)
     budget_name = models.CharField(max_length=100, blank=True, null=True)
     budget_limit = models.CharField(choices=budget_type_cat, null=False, max_length=200)
@@ -124,8 +125,8 @@ class Expense(models.Model):
     expense_image = cloudinary.models.CloudinaryField(
         "image", folder="expense_images", blank=True, null=True
     )
-    created_at = models.DateTimeField(default=timezone.now())
-    updated_at = models.DateTimeField(default=timezone.now())
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"User {self.user.id} expense"
@@ -136,6 +137,16 @@ class Expense(models.Model):
 
         if not self.budget.active_budget:
             raise ValidationError("You can't add the expense to inactive budget.")
+
+        # Time validity while adding the expense for a budget
+        if self.created_at.date() < self.budget.created_at.date():
+            raise ValidationError(
+                "You can't add the expense before the birth of budget"
+            )
+        if self.budget.valid_until and self.created_at.date() > self.budget.valid_until:
+            raise ValidationError(
+                "You can't add the expense after the budget expiry date."
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
