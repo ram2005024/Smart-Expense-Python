@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from faker import Faker
-import random, datetime
+import random, datetime, calendar
 from expense.models import Expense, Budget
 from authentication.models import CustomUser
 
@@ -22,12 +22,14 @@ class Command(BaseCommand):
         month = options["month"]
         year = options["year"]
 
+        # ✅ Get user
         try:
             user = CustomUser.objects.get(username=username)
         except CustomUser.DoesNotExist:
             self.stdout.write(self.style.ERROR(f"User '{username}' not found"))
             return
 
+        # ✅ Get budgets
         budgets = list(Budget.objects.filter(user=user))
         if not budgets:
             self.stdout.write(
@@ -37,26 +39,19 @@ class Command(BaseCommand):
 
         statuses = ["PENDING", "DECLINED", "REIMBRUSHED", "PAID"]
 
-        # First and last day of chosen month
+        # ✅ First and last day of chosen month
         first_day = datetime.date(year, month, 1)
-        if month == 12:
-            next_month = datetime.date(year + 1, 1, 1)
-        else:
-            next_month = datetime.date(year, month + 1, 1)
-        last_day = next_month - datetime.timedelta(days=1)
+        days_in_month = calendar.monthrange(year, month)[1]
+        last_day = datetime.date(year, month, days_in_month)
 
         expenses_to_create = []
 
         for _ in range(count):
             budget = random.choice(budgets)
 
-            # Instead of skipping, just clamp dates to the chosen month
-            start_date = first_day
-            end_date = last_day
-
             # Pick a random day within the chosen month
-            random_day = random.randint(0, (end_date - start_date).days)
-            expense_date = start_date + datetime.timedelta(days=random_day)
+            random_day = random.randint(0, days_in_month - 1)
+            expense_date = first_day + datetime.timedelta(days=random_day)
             updated_date = expense_date + datetime.timedelta(days=random.randint(0, 2))
 
             expenses_to_create.append(
@@ -77,6 +72,7 @@ class Command(BaseCommand):
                 )
             )
 
+        # ✅ Bulk insert
         Expense.objects.bulk_create(expenses_to_create)
         self.stdout.write(
             self.style.SUCCESS(
