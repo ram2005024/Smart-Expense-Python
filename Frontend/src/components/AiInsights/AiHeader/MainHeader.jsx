@@ -1,14 +1,13 @@
 import { Dot } from "lucide-react";
 import React from "react";
 import moment from "moment/moment";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import ExportButton from "./Buttons/ExportButton";
 import ShareButton from "./Buttons/ShareButton";
 import RefreshButton from "./Buttons/RefreshButton";
 import DateButton from "./Buttons/DateButton";
 const MainHeader = () => {
-  const { overview, selectedDate } = useSelector((state) => state.ai);
-  const dispatch = useDispatch();
+  const { overview } = useSelector((state) => state.ai);
   return (
     <div className="w-full flex justify-between items-center">
       {/* Left side */}
@@ -32,8 +31,6 @@ const MainHeader = () => {
         <DateButton />
         {/* Export button */}
         <ExportButton />
-        {/* Share Button */}
-        <ShareButton />
         {/* Refresh Button */}
         <RefreshButton />
       </div>
