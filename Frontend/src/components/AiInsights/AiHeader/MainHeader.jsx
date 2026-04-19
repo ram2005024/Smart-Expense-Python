@@ -2,6 +2,10 @@ import { Dot } from "lucide-react";
 import React from "react";
 import moment from "moment/moment";
 import { useDispatch, useSelector } from "react-redux";
+import ExportButton from "./Buttons/ExportButton";
+import ShareButton from "./Buttons/ShareButton";
+import RefreshButton from "./Buttons/RefreshButton";
+import DateButton from "./Buttons/DateButton";
 const MainHeader = () => {
   const { overview, selectedDate } = useSelector((state) => state.ai);
   const dispatch = useDispatch();
@@ -25,15 +29,13 @@ const MainHeader = () => {
       {/* Right Side */}
       <div className="flex items-center gap-2">
         {/* Date Button */}
-        <button className="px-3 p-2 border border-gray-200 rounded-lg gap-2  inline-flex items-center text-sm text-gray-900 outline-none bg-white ">
-          <span>🗓️</span>
-          <span>{selectedDate}</span>
-        </button>
+        <DateButton />
         {/* Export button */}
-
+        <ExportButton />
         {/* Share Button */}
-
+        <ShareButton />
         {/* Refresh Button */}
+        <RefreshButton />
       </div>
     </div>
   );
