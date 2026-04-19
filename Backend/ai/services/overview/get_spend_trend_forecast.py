@@ -1,8 +1,7 @@
-from expense.selectors.budget_selector import get_budget_of_user
-from collections import defaultdict
 from datetime import datetime
 from django.utils import timezone
 import calendar
+from expense.selectors.expense_selector import get_month_expense
 
 
 def get_spent_forecast_trend(user):
@@ -31,17 +30,3 @@ def get_spent_forecast_trend(user):
         }
     )
     return trend
-
-
-# Extract the dict where key is month and value is total expense for that month
-
-
-def get_month_expense(user):
-    Budgets = get_budget_of_user(user).filter(is_active=True)
-    monthly_expenses = defaultdict(float)
-    for b in Budgets:
-        expenses = b.budget_expenses.all()
-        for e in expenses:
-            start_month = datetime.strftime(e.created_at, "%Y-%m")
-            monthly_expenses[start_month] += round(e.expense_amount)
-    return monthly_expenses

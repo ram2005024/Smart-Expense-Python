@@ -15,11 +15,15 @@ from ai.services.chat_window.get_next_month_spent_prediction import (
     get_next_month_spend_prediction,
 )
 from ai.services.chat_window.get_top_savings import get_top_savings
+from ai.services.chat_window.compare_current_previous import (
+    compare_previous_current_month_expense,
+)
+from ai.services.chat_window.sudden_jump_in_expense import get_sudden_jump_in_expense
 from .services.convert_date_to_str import convertDateToStr
 from .services.overview.get_all_anomalies import get_all_anomalies
 from .services.overview.get_total_spent_savings import get_total_saving, get_total_spent
 from .services.overview.get_health_score import get_health_score
-import json
+from datetime import datetime
 
 
 @api_view(["GET"])
@@ -31,6 +35,12 @@ def get_overview(request):
             {"message": "Date field missing"}, status=status.HTTP_400_BAD_REQUEST
         )
     date_str = convertDateToStr(date)
+    current_date = datetime.now()
+    if date_str > current_date:
+        return Response(
+            {"message": "You can't choose the future date.Please try again"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     # Get the anomalies
     anomalies = get_all_anomalies(request._request, date_str)
     total_spent = get_total_spent(request._request, date_str)
@@ -52,12 +62,14 @@ def get_overview(request):
             "forecasts": forecasts,
             "tips": tips,
             "spend_trend": spend_trend,
+            "updated_on": datetime.now(),
         },
         status=status.HTTP_200_OK,
     )
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def get_chat_response(request):
     query = request.POST.get("query") or ""
     if "overspend" in query:
@@ -68,6 +80,12 @@ def get_chat_response(request):
         return Response(chat_response, status=status.HTTP_200_OK)
     if "saving" in query:
         chat_response = get_top_savings(request.user)
+        return Response(chat_response, status=status.HTTP_200_OK)
+    if "compare" in query:
+        chat_response = compare_previous_current_month_expense(request.user)
+        return Response(chat_response, status=status.HTTP_200_OK)
+    if "suddenjump" or "jump" or "spike" in query:
+        chat_response = get_sudden_jump_in_expense(request.user)
         return Response(chat_response, status=status.HTTP_200_OK)
     return Response(
         {"message": "Sorry the query request is invalid.Try again later"},

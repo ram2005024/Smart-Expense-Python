@@ -1,6 +1,7 @@
 # Get all the budget along with the expense of the user
 from expense.models import Budget
 from django.db.models import Sum
+from django.db.models.functions import TruncMonth
 
 
 def get_budget_of_user(user):
@@ -13,4 +14,14 @@ def get_budget_total_spent(budget):
             "total_spent"
         ]
         or 0
+    )
+
+
+def get_group_budget_with_expense_month_category(user):
+    return (
+        get_budget_of_user(user)
+        .filter(is_active=True)
+        .annotate(month=TruncMonth("budget_expenses__created_at"))
+        .values("budget_field", "month")
+        .annotate(total_spent=Sum("budget_expenses__expense_amount"))
     )
