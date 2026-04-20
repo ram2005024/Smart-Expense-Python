@@ -4,6 +4,7 @@ import { fetchOverview } from "../thunks/aiThunk";
 const initialState = {
   overview: null,
   ai_loading: false,
+  isRefreshing: false,
   ai_error: "",
   selectedDate: new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -14,8 +15,14 @@ const aiSlice = createSlice({
   name: "ai-slice",
   initialState,
   reducers: {
-    setLoading: (state) => {
-      state.ai_loading = true;
+    setRefreshing: (state) => {
+      state.isRefreshing = true;
+    },
+    setOverview: (state, action) => {
+      state.overview = action.payload;
+    },
+    unsetIsRefreshing: (state) => {
+      state.isRefreshing = false;
     },
   },
   extraReducers: (builder) => {
@@ -36,4 +43,5 @@ const aiSlice = createSlice({
 });
 
 export default aiSlice.reducer;
-export const { setLoading } = aiSlice.actions;
+export const { setRefreshing, setOverview, unsetIsRefreshing } =
+  aiSlice.actions;

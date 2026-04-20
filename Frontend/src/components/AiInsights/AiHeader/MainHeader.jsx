@@ -3,9 +3,9 @@ import React from "react";
 import moment from "moment/moment";
 import { useSelector } from "react-redux";
 import ExportButton from "./Buttons/ExportButton";
-import ShareButton from "./Buttons/ShareButton";
 import RefreshButton from "./Buttons/RefreshButton";
 import DateButton from "./Buttons/DateButton";
+import ShareButton from "./Buttons/ShareButton";
 const MainHeader = () => {
   const { overview } = useSelector((state) => state.ai);
   return (
@@ -31,6 +31,8 @@ const MainHeader = () => {
         <DateButton />
         {/* Export button */}
         <ExportButton />
+        {/* Share Button */}
+        <ShareButton />
         {/* Refresh Button */}
         <RefreshButton />
       </div>

@@ -14,6 +14,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchExpenses } from "./store/thunks/expenseThunk";
 import toast from "react-hot-toast";
+import ShareOverviewUI from "./components/AiInsights/AiHeader/ShareOverviewUI";
 const App = () => {
   // Fetch all the transactions
 
@@ -56,6 +57,10 @@ const App = () => {
         {
           path: "/login",
           element: <Login />,
+        },
+        {
+          path: "/share/overview/:user_id",
+          element: <ShareOverviewUI />,
         },
         {
           path: "/",

@@ -6,7 +6,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import MainHeader from "../../components/AiInsights/AiHeader/MainHeader";
 
 const Ai = () => {
-  const { ai_loading, ai_error, overview, selectedDate } = useSelector(
+  const { ai_loading, isRefreshing, overview, selectedDate } = useSelector(
     (state) => state.ai,
   );
   const dispatch = useDispatch();
@@ -19,15 +19,14 @@ const Ai = () => {
       }
     })();
   }, [selectedDate]);
-  if (ai_loading) {
+  if (ai_loading || isRefreshing) {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <Loader2 className="animate-spin size-6 text-gray-500" />
       </div>
     );
   }
-  console.log(selectedDate);
-  return !ai_loading && overview ? (
+  return overview ? (
     <div className="flex flex-col gap-2 w-full h-full sm:p-4">
       <MainHeader />
     </div>
