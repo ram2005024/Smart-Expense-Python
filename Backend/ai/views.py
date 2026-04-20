@@ -1,7 +1,12 @@
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum
+from django.conf import settings
+import uuid
+from django.utils import timezone
+from datetime import timedelta
 from expense.models import Budget, Expense
 from rest_framework.response import Response
 import datetime
@@ -19,17 +24,20 @@ from ai.services.chat_window.compare_current_previous import (
     compare_previous_current_month_expense,
 )
 from ai.services.chat_window.sudden_jump_in_expense import get_sudden_jump_in_expense
+from ai.serializers import OverviewSerializer
 from .services.convert_date_to_str import convertDateToStr
 from .services.overview.get_all_anomalies import get_all_anomalies
 from .services.overview.get_total_spent_savings import get_total_saving, get_total_spent
 from .services.overview.get_health_score import get_health_score
 from datetime import datetime
+from .models import OverviewModel, ShareLink, User
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_overview(request):
     date = request.query_params.get("date")
+    refresh = request.query_params.get("refresh")
     if not date:
         return Response(
             {"message": "Date field missing"}, status=status.HTTP_400_BAD_REQUEST
@@ -51,19 +59,26 @@ def get_overview(request):
     forecasts = get_forcast(request.user)
     tips = get_tips(request.user)
     spend_trend = get_spent_forecast_trend(request.user)
+    # Put in the model after getting the reponse
+    overview_model, created = OverviewModel.objects.get_or_create(user=request.user)
+    if overview_model.is_refreshed and not refresh:
+        serializer = OverviewSerializer(overview_model)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    # If its not refresh then provide the new values
+    overview_model.anomalies = anomalies
+    overview_model.total_spent = total_spent
+    overview_model.total_saving = total_savings
+    overview_model.health_score = health_score
+    overview_model.budget_count_list = budget_count_list
+    overview_model.warnings = warnings
+    overview_model.forecasts = forecasts
+    overview_model.tips = tips
+    overview_model.spend_trend = spend_trend
+    overview_model.is_refreshed = True
+    overview_model.save()
+    serializer = OverviewSerializer(overview_model)
     return Response(
-        {
-            "anomalies": anomalies,
-            "total_spent": total_spent,
-            "total_saving": total_savings,
-            "health_score": health_score,
-            "budget_count_list": budget_count_list,
-            "warnings": warnings,
-            "forecasts": forecasts,
-            "tips": tips,
-            "spend_trend": spend_trend,
-            "updated_on": datetime.now(),
-        },
+        serializer.data,
         status=status.HTTP_200_OK,
     )
 
@@ -89,5 +104,77 @@ def get_chat_response(request):
         return Response(chat_response, status=status.HTTP_200_OK)
     return Response(
         {"message": "Sorry the query request is invalid.Try again later"},
+        status=status.HTTP_200_OK,
+    )
+
+
+# Get the share link
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def generate_share_link(request):
+    token = str(uuid.uuid4())
+    # Make the token
+    share_link, created = ShareLink.objects.get_or_create(user=request.user)
+    if created:
+        share_link.token = token
+        share_link.save()
+        return Response(
+            {
+                "share_link"
+                f"{settings.FRONTEND_URL}/share/overview/{share_link.user.id}?token={token}"
+            },
+            status=status.HTTP_200_OK,
+        )
+    # Generate the new expiry date on updating the token
+    share_link.token = token
+    share_link.expires_at = timezone.now() + timedelta(hours=24)
+    share_link.save()
+    return Response(
+        {
+            "share_link": f"{settings.FRONTEND_URL}/share/overview/{share_link.user.id}?token={token}"
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+# Verify the share-link
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def verify_share_link(request, user_id):
+    token = request.data.get("token")
+    User = get_user_model()
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response(
+            {"message": "Share link user doesn't exist"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    # Get the share_link of the user
+    try:
+        share_link = ShareLink.objects.get(user=user)
+    except ShareLink.DoesNotExist:
+        return Response(
+            {"message": "Share link of user doesn't exist"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    is_Matched = share_link.token == token
+    if not is_Matched:
+        return Response({"message": "Token mismatched"})
+    # Check the expiry date of the token
+    current_date = timezone.now()
+    isExpired = current_date > share_link.expires_at
+    if isExpired:
+        return Response(
+            {
+                "message": "Token expired",
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
+        # Get the overview of the user and send the response
+    overview = OverviewModel.objects.get(user=user)
+    serializer = OverviewSerializer(overview)
+    return Response(
+        {"message": "Successfully verified", "overview": serializer.data},
         status=status.HTTP_200_OK,
     )

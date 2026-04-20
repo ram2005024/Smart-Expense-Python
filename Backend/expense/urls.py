@@ -1,5 +1,6 @@
 from django.urls import path, include
 from expense.views import get_spend_by_categories, RetriveBudgetSpendPrediction
+from ai.views import generate_share_link
 from . import views
 from rest_framework.routers import DefaultRouter
 
