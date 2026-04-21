@@ -1,10 +1,14 @@
-import React from "react";
-import { Link, Download, Mail, X } from "lucide-react";
+import React, { useState } from "react";
+import { Link, Download, Mail, X, DownloadIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAxios } from "../../../../hooks/useAxios";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import SnapshotUI from "../SnapshotUI";
 
 const DropDownShare = ({ open, setOpen }) => {
+  const [showSnapshot, setShowSnapshot] = useState(false);
+  const { overview } = useSelector((state) => state.ai);
   // Basics
   const axios = useAxios();
   // Function for handeling the copy link
@@ -25,6 +29,23 @@ const DropDownShare = ({ open, setOpen }) => {
       console.error(error);
     }
   };
+  const handleShareEmail = async () => {
+    try {
+      const res = await axios.get("/ai/generate_share_link");
+      if (res.status == 200) {
+        const subject = encodeURIComponent(
+          `Finanicial snapshot of ${overview?.user?.username}`,
+        );
+        const body = encodeURIComponent(
+          `Here’s my financial snapshot link:\n\n${res.data.share_link}`,
+        );
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -68,13 +89,26 @@ const DropDownShare = ({ open, setOpen }) => {
                 </button>
               </li>
               <li>
-                <button className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 w-full">
-                  <Download className="w-4 h-4 text-gray-500" />
+                <button
+                  className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 w-full"
+                  onClick={() => setShowSnapshot(true)}
+                >
+                  <DownloadIcon className="w-4 h-4 text-gray-500" />
                   Download Snapshot
                 </button>
+                {showSnapshot && (
+                  <SnapshotUI
+                    data={overview}
+                    username={overview?.user?.username}
+                    onClose={() => setShowSnapshot(false)}
+                  />
+                )}
               </li>
               <li>
-                <button className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 w-full">
+                <button
+                  onClick={() => handleShareEmail()}
+                  className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 w-full"
+                >
                   <Mail className="w-4 h-4 text-gray-500" />
                   Share via Email
                 </button>

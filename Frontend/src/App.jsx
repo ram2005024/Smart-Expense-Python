@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchExpenses } from "./store/thunks/expenseThunk";
 import toast from "react-hot-toast";
 import ShareOverviewUI from "./components/AiInsights/AiHeader/ShareOverviewUI";
+import SnapshotUI from "./components/AiInsights/AiHeader/SnapshotUI";
 const App = () => {
   // Fetch all the transactions
 
@@ -61,6 +62,10 @@ const App = () => {
         {
           path: "/share/overview/:user_id",
           element: <ShareOverviewUI />,
+        },
+        {
+          path: "/share/snapshot",
+          element: <SnapshotUI />,
         },
         {
           path: "/",
