@@ -21,6 +21,8 @@ class OverviewModel(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user_overview"
     )
+    prediction_count = models.IntegerField(null=True, blank=True)
+    accuracy_percentage = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"Overview of {self.user.username}"
