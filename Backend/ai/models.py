@@ -9,6 +9,8 @@ User = get_user_model()
 
 class OverviewModel(models.Model):
     anomalies = models.JSONField(blank=True, null=True)
+    forecasts = models.JSONField(blank=True, null=True)
+
     total_spent = models.JSONField(blank=True, null=True)
     total_saving = models.JSONField(blank=True, null=True)
     health_score = models.JSONField(blank=True, null=True)

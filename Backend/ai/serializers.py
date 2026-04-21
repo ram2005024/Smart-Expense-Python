@@ -14,6 +14,7 @@ class OverviewSerializer(serializers.ModelSerializer):
             "anomalies",
             "total_spent",
             "total_saving",
+            "forecasts",
             "health_score",
             "budget_count_list",
             "warnings",

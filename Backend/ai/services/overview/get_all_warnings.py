@@ -3,6 +3,8 @@ from django.core.cache import cache
 from expense.selectors.budget_selector import get_budget_of_user, get_budget_total_spent
 import datetime
 from django.utils import timezone
+from datetime import datetime, date
+import uuid
 
 
 def get_warning(user):
@@ -24,7 +26,7 @@ def get_warning(user):
 
 # Budget Warning
 def get_budget_warning(budget):
-    current = datetime.date.today()
+    current = date.today()
     warnings = []
     for b in budget:
         isExpired = b.valid_until and current > b.valid_until
@@ -134,21 +136,25 @@ def get_expense_warning(expense, threshold=10000):
 
 
 # Build the response
-def buildWarning(type, name, risk, amount, category, message):
+def buildWarning(
+    type, name, risk, amount, category, message, created_at=datetime.now()
+):
     return {
+        "id": str(uuid.uuid4()),
         "type": type,
         "name": name.title(),
         "risk": risk,
         "message": message,
         "amount": amount,
         "category": category,
+        "created_at": created_at.isoformat(),
     }
 
 
 # Warning helpers
 def is_budget_expiring(budget, thresold=3):
     if budget.valid_until:
-        remaining = (budget.valid_until - datetime.date.today()).days
+        remaining = (budget.valid_until - date.today()).days
         if 0 < remaining <= thresold:
             return True
     return False

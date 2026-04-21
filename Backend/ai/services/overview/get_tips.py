@@ -2,6 +2,7 @@ from django.core.cache import cache
 from expense.selectors.budget_selector import get_budget_of_user
 from django.db.models import Sum
 from django.utils import timezone
+import uuid
 
 
 def get_tips(user):
@@ -100,6 +101,7 @@ def build_tip_response(
     type, tip_message, serverity, budget_name=None, budget_amount=None
 ):
     return {
+        "id": str(uuid.uuid4()),
         "tip_type": type,
         "tip_message": tip_message,
         "severity": serverity,
