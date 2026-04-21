@@ -1,4 +1,6 @@
 import pandas as pd
+from datetime import datetime
+import uuid
 
 
 class AnomalyDetection:
@@ -21,10 +23,12 @@ class AnomalyDetection:
             ):
                 anomalies.append(
                     {
+                        "id": str(uuid.uuid4()),
                         "type": "duplicate",
                         "expense_name": curr["expense_name"],
                         "expense_amount": int(curr["expense_amount"]),
                         "index": i,
+                        "created_at": datetime.now().isoformat(),
                         "time_diff": round(timediff),
                     }
                 )
@@ -48,11 +52,13 @@ class AnomalyDetection:
                 if z > threshold:
                     anomalies.append(
                         {
+                            "id": str(uuid.uuid4()),
                             "index": i,
                             "expense_name": row["expense_name"],
                             "expense_amount": row["expense_amount"],
                             "expense_category": expense_category,
                             "type": "spike",
+                            "created_at": datetime.now().isoformat(),
                         }
                     )
         return anomalies
@@ -78,12 +84,14 @@ class AnomalyDetection:
                 if row["expense_amount"] > average * amount_threshold:
                     anomalies.append(
                         {
+                            "id": str(uuid.uuid4()),
                             "index": index,
                             "expense_name": expense_name,
                             "expense_category": row["expense_category"],
                             "expense_amount": int(row["expense_amount"]),
                             "type": "recurring_amount",
                             "average": int(average),
+                            "created_at": datetime.now().isoformat(),
                         }
                     )
         # Recurring_frequency pattern change-------------->
@@ -103,6 +111,7 @@ class AnomalyDetection:
                     ):
                         anomalies.append(
                             {
+                                "id": str(uuid.uuid4()),
                                 "expense_name": expense_name,
                                 "type": "recurring_gap",
                                 "day_gap": gap,
@@ -113,6 +122,7 @@ class AnomalyDetection:
                                     average_gap * (1 + frequency_tolerence)
                                 ),
                                 "index": index,
+                                "created_at": datetime.now().isoformat(),
                             }
                         )
         return anomalies
@@ -144,6 +154,7 @@ class AnomalyDetection:
                 hour = row["hour"] % 12 or 12
                 anomalies.append(
                     {
+                        "id": str(uuid.uuid4()),
                         "index": index,
                         "type": "temporal",
                         "risk": risk,
@@ -151,6 +162,7 @@ class AnomalyDetection:
                         "expense_name": row["expense_name"],
                         "expense_amount": row["expense_amount"],
                         "expense_time": f"{hour}{"AM" if row["hour"]<12 else "PM"}",
+                        "created_at": datetime.now().isoformat(),
                     }
                 )
         return anomalies
