@@ -25,6 +25,7 @@ from ai.services.chat_window.compare_current_previous import (
 )
 from ai.services.chat_window.sudden_jump_in_expense import get_sudden_jump_in_expense
 from ai.serializers import OverviewSerializer
+from ai.services.overview.get_data_points import get_data_points
 from .services.convert_date_to_str import convertDateToStr
 from .services.overview.get_all_anomalies import get_all_anomalies
 from .services.overview.get_total_spent_savings import get_total_saving, get_total_spent
@@ -58,6 +59,7 @@ def get_overview(request):
     warnings = get_warning(request.user)
     forecasts = get_forcast(request.user)
     tips = get_tips(request.user)
+    data_points = get_data_points(request.user)
     spend_trend = get_spent_forecast_trend(request.user)
     # Put in the model after getting the reponse
     overview_model, created = OverviewModel.objects.get_or_create(user=request.user)
@@ -75,6 +77,7 @@ def get_overview(request):
     overview_model.tips = tips
     overview_model.spend_trend = spend_trend
     overview_model.is_refreshed = True
+    overview_model.data_points = data_points
     overview_model.save()
     serializer = OverviewSerializer(overview_model)
     return Response(

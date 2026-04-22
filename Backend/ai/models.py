@@ -24,6 +24,7 @@ class OverviewModel(models.Model):
         User, on_delete=models.CASCADE, related_name="user_overview"
     )
     prediction_count = models.IntegerField(null=True, blank=True)
+    data_points = models.FloatField(null=True, default=0, blank=True)
     accuracy_percentage = models.IntegerField(null=True, blank=True)
 
     def __str__(self):

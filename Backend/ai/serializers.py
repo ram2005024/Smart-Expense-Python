@@ -23,6 +23,7 @@ class OverviewSerializer(serializers.ModelSerializer):
             "updated_on",
             "is_refreshed",
             "user",
+            "data_points",
             "prediction_count",
             "accuracy_count",
         ]
