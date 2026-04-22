@@ -11,29 +11,22 @@ def get_top_savings(user):
     if budget_count < 3 or expense_count < 5:
         return {
             "type": "saving",
-            "results": [
-                {
-                    "method": "Freeze",
-                    "description": "Freeze discretionary categories like PERSONAL,TRIP,CLOTHS to minimize the expense",
-                },
-                {
-                    "method": "Under Budget",
-                    "description": "Try to reallocate the amount of under-budget to control the overspending in another budget",
-                },
-            ],
-            "message": "You don't have enough data for the budget though try to maintain the data and follow the guidance to save the money",
+            "message": "Freeze: Freeze discretionary categories like PERSONAL, TRIP, CLOTHS to minimize the expense. Under Budget: Try to reallocate the amount of under-budget to control the overspending in another budget.You don't have enough data for the budget though try to maintain the data and follow the guidance to save the money",
         }
     else:
         results = []
-        # Give suggestion on the basis of freezing the underbudget expense
+
         results.append(get_under_budget_saving_tips(user))
         results.extend(get_descritionary_budgets(user))
         results.extend(get_saving_suggestion_from_usage_of_inactive_budgets(user))
-    return {
-        "type": "saving",
-        "results": results,
-        "description": f"Here are top {len(results)} strategies to save the money for your expense ",
-    }
+
+        message = " ".join([f"{r['type']}: {r['message']}" for r in results])
+
+        return {
+            "type": "saving",
+            "results": results,
+            "message": message,
+        }
 
 
 def get_under_budget_saving_tips(user):

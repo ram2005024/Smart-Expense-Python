@@ -86,11 +86,18 @@ def get_overview(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_chat_response(request):
-    query = request.POST.get("query") or ""
+    query = request.data.get("query").lower() or ""
+    if any(word in query for word in ["hi", "hello", "hlw", "hey"]):
+        return Response(
+            {
+                "message": f"Hey {request.user.username.capitalize()}!.Lets enroll with us to track your daily expense.I am your AI assistant created by Cyrus Smart Expense Tracker😁"
+            },
+            status=status.HTTP_200_OK,
+        )
     if "overspend" in query:
         chat_response = get_overspent_chat(request.user)
         return Response(chat_response, status=status.HTTP_200_OK)
-    if "prediction" in query:
+    if "predict" in query:
         chat_response = get_next_month_spend_prediction(request.user)
         return Response(chat_response, status=status.HTTP_200_OK)
     if "saving" in query:
@@ -99,12 +106,12 @@ def get_chat_response(request):
     if "compare" in query:
         chat_response = compare_previous_current_month_expense(request.user)
         return Response(chat_response, status=status.HTTP_200_OK)
-    if "suddenjump" or "jump" or "spike" in query:
+    if any(word in query for word in ["jump", "sudden", "sudden jump", "spike"]):
         chat_response = get_sudden_jump_in_expense(request.user)
         return Response(chat_response, status=status.HTTP_200_OK)
     return Response(
         {"message": "Sorry the query request is invalid.Try again later"},
-        status=status.HTTP_200_OK,
+        status=status.HTTP_400_BAD_REQUEST,
     )
 
 

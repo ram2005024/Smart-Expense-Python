@@ -35,8 +35,9 @@ def get_sudden_jump_in_expense(user):
                     ),
                 }
             )
-    return (
-        category_spikes
-        if category_spikes
-        else {"message": "No sudden jump in expenses detected"}
-    )
+            message = " ".join(
+                [f"{r['type']}: {r['message']}" for r in category_spikes]
+            )
+    return {
+        "message": message if category_spikes else "No sudden jump in expenses detected"
+    }

@@ -26,12 +26,17 @@ def get_overspent_chat(user):
                 "type": "Overspent",
                 "Overspent_budget_category": top_category,
                 "spent_percentage": top_spent_percent,
-                "text": f"Your budget of category {top_category} has  spent percentage of {top_spent_percent}.",
+                "message": f"Your budget of category {top_category} has  spent percentage of {top_spent_percent}.",
             }
         )
-    else:
-        overspent.append({"text": "No overspent on any budget is found"})
-    return overspent
+    message = " ".join([f"{r['type']}: {r['message']}" for r in overspent])
+    return {
+        "message": (
+            message
+            if overspent
+            else "No overspending was detected in any budget. Keep it up, and best of luck maintaining this progress!"
+        )
+    }
 
 
 # Extract the category of the budget along with their expense
