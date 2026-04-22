@@ -103,7 +103,7 @@ const UI_MAP = {
 // ─────────────────────────────────────────
 // CARD
 // ─────────────────────────────────────────
-const AlertCard = ({ item, onDismiss, setReviewData, setIsReview }) => {
+const AlertCard = ({ item, onDismiss }) => {
   const cfg = UI_MAP[item._type] || UI_MAP.spike;
   const Icon = cfg.icon;
   const message = item.message || item.tip_message || null;

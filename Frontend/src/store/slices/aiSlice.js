@@ -21,7 +21,7 @@ const aiSlice = createSlice({
     setOverview: (state, action) => {
       state.overview = action.payload;
     },
-    unsetIsRefreshing: (state, action) => {
+    unsetIsRefreshing: (state) => {
       state.isRefreshing = false;
     },
   },

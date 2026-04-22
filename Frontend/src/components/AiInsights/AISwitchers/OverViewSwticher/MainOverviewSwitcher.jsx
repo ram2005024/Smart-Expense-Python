@@ -3,6 +3,7 @@ import SpendTrendChart from "./MainOverview/SpendTrendForecastGraph";
 import { useSelector } from "react-redux";
 import LinkBar from "./MainOverview/LinkBar";
 import LinkDashboard from "./MainOverview/LinkDashboard";
+import MainChat from "./MainOverview/ChatUX/MainChat";
 
 const MainOverviewSwitcher = () => {
   const { overview } = useSelector((state) => state.ai);
@@ -11,7 +12,7 @@ const MainOverviewSwitcher = () => {
   return (
     <div className="w-full grid grid-cols-1 sm:grid-cols-13 gap-3 mt-4 px-3">
       {/* Left content */}
-      <div className="col-span-9">
+      <div className="col-span-8">
         <div className="flex flex-col gap-2.5">
           {/* Spend trend and forecast graph */}
           <SpendTrendChart data={overview?.spend_trend} />
@@ -31,7 +32,12 @@ const MainOverviewSwitcher = () => {
       </div>
 
       {/* Right content */}
-      <div className="grid-cols-5 ">I am right content</div>
+      <div className="col-span-5 ">
+        <div className="flex flex-col gap-3 w-full">
+          {/* Chat block */}
+          <MainChat />
+        </div>
+      </div>
     </div>
   );
 };
