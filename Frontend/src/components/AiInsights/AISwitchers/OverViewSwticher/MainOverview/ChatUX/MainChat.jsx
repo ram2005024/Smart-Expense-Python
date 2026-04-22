@@ -8,7 +8,7 @@ const MainChat = () => {
   return (
     <div
       className="
-  sm:w-sm w-auto flex flex-col h-96 bg-white  rounded-lg "
+   flex flex-col h-96 bg-white  rounded-lg "
     >
       {/* Header  */}
       <Header />

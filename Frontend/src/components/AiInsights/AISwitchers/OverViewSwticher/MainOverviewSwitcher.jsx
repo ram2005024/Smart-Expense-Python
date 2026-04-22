@@ -4,13 +4,14 @@ import { useSelector } from "react-redux";
 import LinkBar from "./MainOverview/LinkBar";
 import LinkDashboard from "./MainOverview/LinkDashboard";
 import MainChat from "./MainOverview/ChatUX/MainChat";
+import BudgetShowcase from "./MainOverview/BudgetShowcase";
 
 const MainOverviewSwitcher = () => {
   const { overview } = useSelector((state) => state.ai);
   const [sorting, setSorting] = useState("Recent");
   const [activeLink, setActiveLink] = useState("All");
   return (
-    <div className="w-full grid grid-cols-1 sm:grid-cols-13 gap-3 mt-4 px-3">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-13 gap-8 mt-4 px-3">
       {/* Left content */}
       <div className="col-span-8">
         <div className="flex flex-col gap-2.5">
@@ -32,10 +33,12 @@ const MainOverviewSwitcher = () => {
       </div>
 
       {/* Right content */}
-      <div className="col-span-5 ">
+      <div className="col-span-4 ">
         <div className="flex flex-col gap-3 w-full">
           {/* Chat block */}
           <MainChat />
+          {/* Budget Showcase */}
+          <BudgetShowcase />
         </div>
       </div>
     </div>
