@@ -9,7 +9,7 @@ class AnomalyDetection:
         anomalies = []
         if df.empty:
             return []
-        df["created_at"] = pd.to_datetime(df["created_at"])
+        df["created_at"] = pd.to_datetime(df["created_at"], format="ISO8601")
         for i in range(1, len(df)):
             prev = df.iloc[i - 1]
             curr = df.iloc[i]
