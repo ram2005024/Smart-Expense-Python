@@ -4,16 +4,19 @@ import Header from "./Header";
 import Body from "./Body";
 import Footer from "./Footer";
 
-const MainChat = () => {
+const MainChat = ({ height, bodyHeight }) => {
   return (
     <div
+      style={{
+        height: height,
+      }}
       className="
-   flex flex-col h-96 bg-white  rounded-lg "
+   flex flex-col   bg-white  rounded-lg "
     >
       {/* Header  */}
       <Header />
       {/* Body */}
-      <Body />
+      <Body bodyHeight={bodyHeight} />
       {/* Footer */}
       <Footer />
     </div>

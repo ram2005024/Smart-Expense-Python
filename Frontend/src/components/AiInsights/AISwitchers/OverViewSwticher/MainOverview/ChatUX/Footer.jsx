@@ -11,10 +11,8 @@ const Footer = () => {
   const suggestion_queries = [
     "Hi",
     "What is my overspend?",
-    "What is my spend prediction?",
-    "What are my top savings?",
-    "Can you compare my expenses?",
-    "Is there a sudden jump in my expenses?",
+    "Spend prediction.",
+    "My top savings.",
   ];
   const [query, setQuery] = useState("");
   const { chatLoading } = useSelector((state) => state.chat);

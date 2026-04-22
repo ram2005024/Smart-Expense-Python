@@ -34,9 +34,9 @@ const MainOverviewSwitcher = () => {
 
       {/* Right content */}
       <div className="col-span-4 ">
-        <div className="flex flex-col gap-3 w-full">
+        <div className="flex  flex-col gap-3 w-full">
           {/* Chat block */}
-          <MainChat />
+          <MainChat height="454px" bodyHeight="284px" />
           {/* Budget Showcase */}
           <BudgetShowcase />
         </div>

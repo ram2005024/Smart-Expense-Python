@@ -13,6 +13,9 @@ export const sendMessage = createAsyncThunk(
       });
       return res.data;
     } catch (error) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 3000);
+      });
       return thunkAPI.rejectWithValue(
         error?.response?.data?.message ||
           error.message ||

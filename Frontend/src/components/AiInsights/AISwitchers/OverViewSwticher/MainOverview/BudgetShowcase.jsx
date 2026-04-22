@@ -74,7 +74,7 @@ const BudgetShowcase = () => {
                     {budgetIcon && (
                       <span className="text-xl">{budgetIcon}</span>
                     )}
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm text-black/70 font-semibold">
                       {item.budget_name}
                     </span>
                     {isOver && (

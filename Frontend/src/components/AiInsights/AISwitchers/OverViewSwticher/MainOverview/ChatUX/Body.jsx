@@ -2,12 +2,17 @@ import { CircleAlert, Sparkles } from "lucide-react";
 import React from "react";
 import { useSelector } from "react-redux";
 
-const Body = () => {
+const Body = ({ bodyHeight }) => {
   // Basics
   const { queryData, chatLoading } = useSelector((state) => state.chat);
   console.log("Ayo hai yeta response: ", queryData);
   return (
-    <div className="min-h-56 overflow-y-scroll">
+    <div
+      style={{
+        minHeight: bodyHeight,
+      }}
+      className=" overflow-y-scroll"
+    >
       {queryData.length === 0 ? (
         <div className="flex text-gray-400 w-full h-full items-center justify-center">
           <div className="flex flex-col items-center">
@@ -21,12 +26,12 @@ const Body = () => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 min-h-full overflow-y-scroll flex  flex-col  justify-end items-end">
+        <div className="flex-1 min-h-full overflow-y-scroll flex  flex-col px-4 gap-3 p-2 justify-end items-end">
           {queryData.map((i, index) => {
             return (
               <div
-                className="flex gap-2 items-center max-h-32 overflow-y-auto my-2 px-2"
                 key={index}
+                className={`flex gap-2 items-center ${i.sender === "ai" ? "  self-start" : " self-end"}`}
               >
                 {/* Show the ai icon if the sender is ai */}
                 {i.sender === "ai" && (
@@ -35,13 +40,14 @@ const Body = () => {
                   </span>
                 )}
                 <p
-                  className={`p-2 min-w-1/2 wrap-break-word px-3 text-xs rounded-2xl ${i.sender === "ai" ? "bg-slate-200 max-w-10/12 text-gray-500 self-start" : "bg-indigo-600 text-white self-end"}`}
+                  className={`p-2 min-w-1/2 wrap-break-word px-3 text-xs rounded-2xl ${i.sender === "ai" ? "bg-slate-200 max-w-10/12 text-gray-500 " : "bg-indigo-600 text-white "}`}
                 >
                   {i.message}
                 </p>
               </div>
             );
           })}
+
           {/* If chat is loading show the chat bubble */}
           {chatLoading && (
             <div className="bg-slate-200 text-gray-500 rounded-2xl px-3 py-2 text-xs self-start m-4">
