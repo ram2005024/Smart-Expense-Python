@@ -2,6 +2,7 @@ from datetime import timedelta
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+import uuid
 
 # Create your models here.
 User = get_user_model()
@@ -49,3 +50,17 @@ class ShareLink(models.Model):
             self.expires_at = timezone.now() + timedelta(hours=24)
 
         super().save(*args, **kwargs)
+
+
+class AnomalyState(models.Model):
+    reference_id = models.CharField(max_length=100, null=False, blank=False)
+    mark_safe = models.BooleanField(default=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "reference_id"], name="unique_state_per_user"
+            )
+        ]

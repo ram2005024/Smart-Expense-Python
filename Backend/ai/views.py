@@ -26,12 +26,13 @@ from ai.services.chat_window.compare_current_previous import (
 from ai.services.chat_window.sudden_jump_in_expense import get_sudden_jump_in_expense
 from ai.serializers import OverviewSerializer
 from ai.services.overview.get_data_points import get_data_points
+from ai.anomalies.get_filter_anomalies import get_filter_anomalies
 from .services.convert_date_to_str import convertDateToStr
 from .services.overview.get_all_anomalies import get_all_anomalies
 from .services.overview.get_total_spent_savings import get_total_saving, get_total_spent
 from .services.overview.get_health_score import get_health_score
 from datetime import datetime
-from .models import OverviewModel, ShareLink, User
+from .models import AnomalyState, OverviewModel, ShareLink, User
 
 
 @api_view(["GET"])
@@ -61,13 +62,15 @@ def get_overview(request):
     tips = get_tips(request.user)
     data_points = get_data_points(request.user)
     spend_trend = get_spent_forecast_trend(request.user)
+    # Filter the anomalies before sending to the client
+    filtered_anomaly = get_filter_anomalies(anomalies=anomalies, user=request.user)
     # Put in the model after getting the reponse
     overview_model, created = OverviewModel.objects.get_or_create(user=request.user)
     if overview_model.is_refreshed and not refresh:
         serializer = OverviewSerializer(overview_model)
         return Response(serializer.data, status=status.HTTP_200_OK)
     # If its not refresh then provide the new values
-    overview_model.anomalies = anomalies
+    overview_model.anomalies = filtered_anomaly
     overview_model.total_spent = total_spent
     overview_model.total_saving = total_savings
     overview_model.health_score = health_score
@@ -188,3 +191,19 @@ def verify_share_link(request, user_id):
         {"message": "Successfully verified", "overview": serializer.data},
         status=status.HTTP_200_OK,
     )
+
+
+# View to mark safe for any anomaly
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def mark_safe(request, reference_id):
+    overview = OverviewModel.objects.get(user=request.user)
+    AnomalyState.objects.filter(user=request.user, reference_id=reference_id).update(
+        mark_safe=True
+    )
+    user_anomalies = overview.anomalies
+    filtered = get_filter_anomalies(user_anomalies, request.user)
+    overview.anomalies = filtered
+    overview.save()
+    serializer = OverviewSerializer(overview)
+    return Response({"message": "Marked safe", "overview": serializer.data})

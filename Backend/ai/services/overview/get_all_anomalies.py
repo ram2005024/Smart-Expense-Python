@@ -11,8 +11,9 @@ def get_all_anomalies(request, date_str):
         created_at__month=date_str.month,
         user=request.user,
     )
-    formatted_data = [
+    data = [
         {
+            "id": e.id,
             "expense_name": e.expense_name,
             "expense_category": e.expense_category,
             "created_at": e.created_at.isoformat(),
@@ -20,10 +21,9 @@ def get_all_anomalies(request, date_str):
         }
         for e in expense_data
     ]
+    payload = {"user_id": request.user.id, "data": data}
     try:
-        response = requests.post(
-            FAST_API + "expense/anomaly_detection", json=formatted_data
-        )
+        response = requests.post(FAST_API + "expense/anomaly_detection", json=payload)
         return response.json()
     except RuntimeError:
         return {"error": "Service unavailable"}

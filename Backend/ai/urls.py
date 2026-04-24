@@ -10,4 +10,9 @@ urlpatterns = [
         views.verify_share_link,
         name="verify_share_link",
     ),
+    path(
+        "anomaly/mark-unsafe/<str:reference_id>",
+        views.mark_safe,
+        name="anomaly-mark-safe",
+    ),
 ]
