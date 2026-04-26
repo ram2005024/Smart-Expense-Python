@@ -33,7 +33,7 @@ const Footer = () => {
         setQueryData({
           sender: "ai",
           receiver: "user",
-          message: error || "Something gone wrong",
+          message: error || "Something went wrong",
         }),
       );
       setQuery("");
