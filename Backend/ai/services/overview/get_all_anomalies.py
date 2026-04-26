@@ -26,4 +26,4 @@ def get_all_anomalies(request, date_str):
         response = requests.post(FAST_API + "expense/anomaly_detection", json=payload)
         return response.json()
     except RuntimeError:
-        return {"error": "Service unavailable"}
+        return {"error": "Service is unavailable"}
