@@ -17,6 +17,7 @@ import ActiveBudgets from "../../components/AiInsights/AiMain/Cards/ActiveBudget
 import AIPredictions from "../../components/AiInsights/AiMain/Cards/AccuracyCount";
 import MainOverviewSwitcher from "../../components/AiInsights/AISwitchers/OverViewSwticher/MainOverviewSwitcher";
 import Main from "../../components/AiInsights/AISwitchers/AIChatSwitcher/Main";
+import MainAnomaliesSwitcher from "../../components/AiInsights/AISwitchers/AnomalySwitcher/Main";
 
 const Ai = () => {
   const { ai_loading, isRefreshing, overview, selectedDate } = useSelector(
@@ -88,6 +89,7 @@ const Ai = () => {
       {/* Switcher content */}
       <div>{activeSwitch === "Overview" && <MainOverviewSwitcher />}</div>
       <div>{activeSwitch === "Ask AI" && <Main />}</div>
+      <div>{activeSwitch === "Anomalies" && <MainAnomaliesSwitcher />}</div>
     </div>
   ) : (
     <div className="w-full h-full flex items-center justify-center">

@@ -5,6 +5,8 @@ const initialState = {
   overview: null,
   ai_loading: false,
   isRefreshing: false,
+  anomaliesCount: 0,
+  riskCount: 0,
   ai_error: "",
   selectedDate: new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -34,6 +36,21 @@ const aiSlice = createSlice({
       .addCase(fetchOverview.fulfilled, (state, action) => {
         state.ai_loading = false;
         state.overview = action.payload;
+        state.anomaliesCount = 0;
+        state.riskCount = 0;
+        if (typeof action.payload == "object") {
+          Object.entries(action.payload?.anomalies).map(([_, value]) => {
+            if (Array.isArray(value)) {
+              state.anomaliesCount += value.length;
+
+              value.forEach((i) => {
+                if (i.risk && i.risk === "High") {
+                  state.riskCount += 1;
+                }
+              });
+            }
+          });
+        }
       })
       .addCase(fetchOverview.rejected, (state, action) => {
         state.ai_loading = false;
